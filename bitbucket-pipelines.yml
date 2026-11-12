@@ -9,6 +9,9 @@
 image: public.ecr.aws/nullplatform/np-cli:2.13.0
 
 definitions:
+  services:
+    docker:
+      memory: 3072
   steps:
     - step: &nullplatform-build
         name: Build

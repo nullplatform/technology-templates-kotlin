@@ -1,0 +1,33 @@
+# nullplatform CI for Bitbucket Pipelines.
+#
+# np build start -> docker build -> np asset push -> np build update.
+# Deployments are triggered by nullplatform, not by this pipeline.
+#
+# NULLPLATFORM_API_KEY is created by nullplatform as a secured repository
+# variable when the application is created.
+
+image: public.ecr.aws/nullplatform/np-cli:2.13.0
+
+definitions:
+  services:
+    docker:
+      memory: 3072
+  steps:
+    - step: &nullplatform-build
+        name: Build
+        services:
+          - docker
+        caches:
+          - docker
+        script:
+          - /np build start
+          - docker build -t app .
+          - /np asset push --type docker-image --source app
+          - /np build update --status=successful
+        after-script:
+          - if [ "$BITBUCKET_EXIT_CODE" -ne 0 ]; then /np build update --status=failed; fi
+
+pipelines:
+  branches:
+    main:
+      - step: *nullplatform-build
